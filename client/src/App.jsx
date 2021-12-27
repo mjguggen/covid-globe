@@ -39,7 +39,8 @@ function App() {
   const [filteredData, setFilteredData] = useState()
   const [date, setDate] = useState(today)
   const [loading, setLoading] = useState(false)
-  const [globeLoading, setGlobeLoading] = useState(true)
+  const [maxLoading, setMaxLoading] = useState(false)
+  const [filterLoading, setFilterLoading] = useState(false)
   const [error, setError] = useState("")
   const [max, setMax] = useState(0)
   const [activeCategory, setActiveCategory] = useState('Confirmed')
@@ -48,8 +49,10 @@ function App() {
 
   const setMaxNumber = (data, category) => {
     if (data) {
+      setMaxLoading(true)
       const top = data.map(i => parseInt(i?.[category]))
       setMax(Math.max(...top))
+      setMaxLoading(false)
     }
   }
 
@@ -83,13 +86,13 @@ function App() {
   }, [data, activeCategory, activeCountry])
 
   const updateFilterData = async() => {
-    setLoading(true)
+    setFilterLoading(true)
     const activeCountryFilter = activeCountry ? data.filter(i => i["Country_Region"] === activeCountry) : data
     
     setFilteredData(activeCountryFilter)
     setMaxNumber(activeCountryFilter, activeCategory)
 
-    setLoading(false)
+    setFilterLoading(false)
   }
 
   const changeCategory = (e) => {
@@ -249,7 +252,6 @@ function App() {
             changeActiveCountry(points[0])
           }}
           waitForGlobeReady={true}
-          onGlobeReady={() => setGlobeLoading(false)}
           width={windowDimensions.width}
           height={windowDimensions.height}
         />
@@ -351,11 +353,11 @@ function App() {
       </Card>
 
       {
-        Boolean(loading || globeLoading) && 
+        Boolean(loading || maxLoading || filterLoading) && 
           <CircularProgress 
             style={{
               position: 'absolute',
-              zIndex: 100,
+              zIndex: 1000000,
               left: 0,
               right: 0,
               top: 0,
