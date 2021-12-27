@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.ts",
+    "devClient": "cd client && npm run start",
+    "devAll": "concurrently \"npm run dev\" \"npm run devClient\"",
     "build": "tsc",
     "buildProd": "npm install && cd client && npm install && npm run build",
     "start": "ts-node index.ts"
@@ -29,7 +31,7 @@
   },
   "devDependencies": {
     "@types/mongoose": "^5.11.97",
-    "concurrently": "^6.5.0",
+    "concurrently": "^6.5.1",
     "nodemon": "^2.0.15"
   }
 }

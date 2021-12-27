@@ -25,18 +25,26 @@ function numberWithCommas(x) {
   return x;
 }
 
+function getWindowDimensions() {
+  const { innerWidth: width, innerHeight: height } = window;
+  return {
+    width,
+    height
+  };
+}
 
 function App() {
   const today = moment().subtract(1, 'days').format('MM-DD-YYYY')
-
   const [data, setData] = useState()
   const [filteredData, setFilteredData] = useState()
   const [date, setDate] = useState(today)
   const [loading, setLoading] = useState(false)
+  const [globeLoading, setGlobeLoading] = useState(true)
   const [error, setError] = useState("")
   const [max, setMax] = useState(0)
   const [activeCategory, setActiveCategory] = useState('Confirmed')
   const [activeCountry, setActiveCountry] = useState(null)
+  const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
 
   const setMaxNumber = (data, category) => {
     const top = data.map(i => parseInt(i?.[category]))
@@ -120,19 +128,30 @@ function App() {
     setDate(moment(newDate).format('MM-DD-YYYY'))
   }
 
-  const sideMargins = 20
+  useEffect(() => {
+    function handleResize() {
+      setWindowDimensions(getWindowDimensions());
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = Boolean(windowDimensions.width < 400)
+  const sideMargins = isMobile ? 10 : 20
+
 
   const customStyles = {
     card: {
-      backgroundColor: 'transparent'
+      backgroundColor: 'transparent',
+      // display: windowDimensions.width < 400 ? 'none' : 'block'
     },
     radioContainer: {
       position: 'absolute',
       zIndex: 100,
     },
-    topLeft: {
-      left: sideMargins,
-      top: sideMargins
+    cardContainter: {
+      padding: isMobile ? 10 : 15
     },
     topRight: {
       right: sideMargins,
@@ -155,10 +174,19 @@ function App() {
     <ThemeProvider theme={theme}>
       <div className="App">
         <Card
-          style={{...customStyles.radioContainer, ...customStyles.topLeft, ...customStyles.card}}
+          style={{
+            ...customStyles.radioContainer, 
+            ...customStyles.card,
+            top: sideMargins,
+            left: isMobile ? 0 : sideMargins,
+            right: isMobile ? 0 : 'auto',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            maxWidth: 200
+          }}
           raised
         >
-          <CardContent>
+          <div style={{...customStyles.cardContainter}}>
             <LocalizationProvider dateAdapter={AdapterDate}>
               <DatePicker
                 label={date}
@@ -168,23 +196,28 @@ function App() {
                 renderInput={(params) => <TextField {...params} label="Date" disabled />}
               />
             </LocalizationProvider>
-          </CardContent>
+          </div>
         </Card>
 
         <Card 
-          style={{...customStyles.radioContainer, ...customStyles.topRight, ...customStyles.card}}
+          style={{
+            ...customStyles.radioContainer, 
+            ...customStyles.topRight, 
+            ...customStyles.card,
+            display: isMobile ? 'none' : 'block'
+          }}
           raised
         >
-          <CardContent>
+          <div style={{...customStyles.cardContainter}}>
             <div style={customStyles.radioEl}>
               <Radio
                 checked={activeCategory === "Confirmed"}
                 onChange={changeCategory}
                 value="Confirmed"
               />
-              <div>
+              <Typography style={{fontSize: isMobile ? 10 : 12}}>
                 Confirmed Cases
-              </div>
+              </Typography>
             </div>
 
             <div style={customStyles.radioEl}>
@@ -193,12 +226,12 @@ function App() {
                 onChange={changeCategory}
                 value="Deaths"
               />
-              <div>
+              <Typography style={{fontSize: isMobile ? 10 : 12}}>
                 Deaths
-              </div>
+              </Typography>
             </div>
 
-          </CardContent>
+          </div>
         </Card>
         <Globe
           ref={globeRef}
@@ -217,6 +250,10 @@ function App() {
           onHexClick={({points}) => {
             changeActiveCountry(points[0])
           }}
+          waitForGlobeReady={true}
+          onGlobeReady={() => setGlobeLoading(false)}
+          width={windowDimensions.width}
+          height={windowDimensions.height}
         />
       </div>
 
@@ -224,8 +261,11 @@ function App() {
         style={{
           ...customStyles.card,
           position: 'absolute',
-          bottom: sideMargins,
-          right: sideMargins,
+          bottom: isMobile ? 125 : sideMargins,
+          right: isMobile ? 0 : sideMargins,
+          left: isMobile ? 0 : 'auto',
+          marginLeft: 'auto',
+          marginRight: 'auto',
           width: 'fit-content',
           maxWidth: 400,
           display: 'flex',
@@ -234,7 +274,7 @@ function App() {
           opacity: activeCountry ? '100%' : 0, 
           transform: !activeCountry ? 'translate(0px, 100px)' : 'translate(0px, 0px)',
           transition: ['transform 100ms', 'opacity 50ms'],
-          pointerEvents: Boolean(activeCountry ?? false)
+          pointerEvents: Boolean(activeCountry ?? false),
         }}
         raised
       >
@@ -250,7 +290,7 @@ function App() {
         style={{
           ...customStyles.card,
           position: 'absolute',
-          bottom: sideMargins,
+          bottom: isMobile ? 200 : sideMargins,
           left: 0, 
           right: 0,
           marginLeft: 'auto',
@@ -261,16 +301,18 @@ function App() {
           alignItems: 'center',
           justifyContent: 'space-between',
           opacity: error ? '100%' : 0, 
-          transform: !error ? 'translate(0px, 100px)' : 'translate(0px, 0px)',
+          transform: !error 
+            ? 'translate(0px, 100px)' 
+            : 'translate(0px, 0px)',
           transition: ['transform 100ms', 'opacity 50ms'],
           pointerEvents: Boolean(error ?? false)
         }}
         raised
       >
-        <CardContent style={{display: 'flex', alignItems: 'center'}}>
+        <div style={{...customStyles.cardContainter, display: 'flex', alignItems: 'center'}}>
           <ErrorIcon style={{marginRight: 20}}/>
           {error}
-        </CardContent>
+        </div>
         <Button onClick={() => getConfirmed()}>
           Retry
         </Button>
@@ -281,10 +323,15 @@ function App() {
           ...customStyles.card,
           position: 'absolute',
           bottom: sideMargins,
-          left: sideMargins,
+          left: isMobile ? 0 : sideMargins,
+          right: isMobile ? 0 : 'auto',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          width: 'fit-content',
+          maxWidth: 300
         }}
       >
-        <CardContent>
+        <div style={{...customStyles.cardContainter}}>
           <Typography gutterBottom>
             COVID 19 GLOBE
           </Typography>
@@ -297,11 +344,11 @@ function App() {
           <Typography style={{fontSize: 10}} gutterBottom>
             Created by <spna><Link href="https://mikeguggenbuehl.com/" target="_blank">Mike Guggenbuehl</Link></spna>
           </Typography>
-        </CardContent>
+        </div>
       </Card>
 
       {
-        loading && 
+        Boolean(loading || globeLoading) && 
           <CircularProgress 
             style={{
               position: 'absolute',
