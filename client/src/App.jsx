@@ -91,12 +91,15 @@ function App() {
 
     if (country) {
       globeRef.current.controls().autoRotate = false
-      globeRef.current.pointOfView(
-        {lat: country["Lat"], 
+      globeRef.current.pointOfView({
+        lat: country["Lat"], 
         lng: country["Long_"], 
         altitude: 1.5
       }, 2000)
     } else {
+      globeRef.current.pointOfView({
+        altitude: 2.5
+      }, 2000)
       globeRef.current.controls().autoRotate = true
     }
   }
