@@ -137,7 +137,7 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const isMobile = Boolean(windowDimensions.width < 400)
+  const isMobile = Boolean(windowDimensions.width < 500)
   const sideMargins = isMobile ? 10 : 20
 
 
