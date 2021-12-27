@@ -47,8 +47,10 @@ function App() {
   const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
 
   const setMaxNumber = (data, category) => {
-    const top = data.map(i => parseInt(i?.[category]))
-    setMax(Math.max(...top))
+    if (data) {
+      const top = data.map(i => parseInt(i?.[category]))
+      setMax(Math.max(...top))
+    }
   }
 
   const getConfirmed = async () => {
@@ -118,7 +120,6 @@ function App() {
   }
 
   const changeDate = (newDate) => {
-    // check if date is within range
     const inRange = checkDateInRange(newDate)
 
     if (!inRange) {
@@ -178,11 +179,8 @@ function App() {
             ...customStyles.radioContainer, 
             ...customStyles.card,
             top: sideMargins,
-            left: isMobile ? 0 : sideMargins,
-            right: isMobile ? 0 : 'auto',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            maxWidth: 200
+            left: sideMargins,
+            display: isMobile ? 'none' : 'block'
           }}
           raised
         >
@@ -261,9 +259,10 @@ function App() {
         style={{
           ...customStyles.card,
           position: 'absolute',
-          bottom: isMobile ? 125 : sideMargins,
+          bottom: isMobile ? 'auto' : sideMargins,
           right: isMobile ? 0 : sideMargins,
           left: isMobile ? 0 : 'auto',
+          top: isMobile ? sideMargins : 'auto',
           marginLeft: 'auto',
           marginRight: 'auto',
           width: 'fit-content',
@@ -272,7 +271,11 @@ function App() {
           alignItems: 'center',
           justifyContent: 'space-between',
           opacity: activeCountry ? '100%' : 0, 
-          transform: !activeCountry ? 'translate(0px, 100px)' : 'translate(0px, 0px)',
+          transform: !activeCountry 
+            ? isMobile 
+              ? 'translate(0px, -100px)' 
+              : 'translate(0px, 100px)' 
+            : 'translate(0px, 0px)',
           transition: ['transform 100ms', 'opacity 50ms'],
           pointerEvents: Boolean(activeCountry ?? false),
         }}
@@ -290,7 +293,7 @@ function App() {
         style={{
           ...customStyles.card,
           position: 'absolute',
-          bottom: isMobile ? 200 : sideMargins,
+          bottom: isMobile ? 125 : sideMargins,
           left: 0, 
           right: 0,
           marginLeft: 'auto',
@@ -342,7 +345,7 @@ function App() {
             View <span><Link href="https://github.com/mjguggen/covid-globe" target="_blank">GitHub Repository</Link></span>
           </Typography>
           <Typography style={{fontSize: 10}} gutterBottom>
-            Created by <spna><Link href="https://mikeguggenbuehl.com/" target="_blank">Mike Guggenbuehl</Link></spna>
+            Created by <span><Link href="https://mikeguggenbuehl.com/" target="_blank">Mike Guggenbuehl</Link></span>
           </Typography>
         </div>
       </Card>
