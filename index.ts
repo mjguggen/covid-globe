@@ -14,11 +14,13 @@ app.get('/api', (req, res) => res.send('GET request to the homepage'))
 
 const PORT = process.env.PORT || 8080
 
-app.use(express.static('client/build'));
-
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
-});
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static('client/build'));
+  
+    app.get('*', (req, res) => {
+      res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+    });
+  }
 
 app.listen(PORT, async () => {
     console.log(`Server has started on ${PORT}`)
