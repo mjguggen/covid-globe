@@ -1,7 +1,6 @@
 const { Octokit } = require("@octokit/rest")
 const { throttling } = require("@octokit/plugin-throttling")
 const Csv = require('../models/Csv')
-const config = require('config')
 const MyOctokit = Octokit.plugin(throttling)
 
 
