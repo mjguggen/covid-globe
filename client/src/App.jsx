@@ -4,7 +4,7 @@ import Globe from 'react-globe.gl';
 import moment from 'moment'
 import {csvParse} from 'd3-dsv'
 import {interpolateYlOrRd, scaleSequentialSqrt} from 'd3'
-import {Radio, Card, CardContent, createTheme, ThemeProvider, Button, TextField, CircularProgress } from '@mui/material'
+import {Radio, Card, CardContent, createTheme, ThemeProvider, Button, TextField, CircularProgress, Typography, Link } from '@mui/material'
 import AdapterDate from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -123,6 +123,9 @@ function App() {
   const sideMargins = 20
 
   const customStyles = {
+    card: {
+      backgroundColor: 'transparent'
+    },
     radioContainer: {
       position: 'absolute',
       zIndex: 100,
@@ -152,7 +155,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <div className="App">
         <Card
-          style={{...customStyles.radioContainer, ...customStyles.topLeft}}
+          style={{...customStyles.radioContainer, ...customStyles.topLeft, ...customStyles.card}}
           raised
         >
           <CardContent>
@@ -162,14 +165,14 @@ function App() {
                 value={date}
                 shouldDisableDate={({_d}) => !checkDateInRange(_d)}
                 onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
-                renderInput={(params) => <TextField {...params} disabled />}
+                renderInput={(params) => <TextField {...params} label="Date" disabled />}
               />
             </LocalizationProvider>
           </CardContent>
         </Card>
 
         <Card 
-          style={{...customStyles.radioContainer, ...customStyles.topRight}}
+          style={{...customStyles.radioContainer, ...customStyles.topRight, ...customStyles.card}}
           raised
         >
           <CardContent>
@@ -219,6 +222,7 @@ function App() {
 
       <Card
         style={{
+          ...customStyles.card,
           position: 'absolute',
           bottom: sideMargins,
           right: sideMargins,
@@ -244,6 +248,7 @@ function App() {
 
       <Card
         style={{
+          ...customStyles.card,
           position: 'absolute',
           bottom: sideMargins,
           left: 0, 
@@ -269,6 +274,30 @@ function App() {
         <Button onClick={() => getConfirmed()}>
           Retry
         </Button>
+      </Card>
+
+      <Card
+        style={{
+          ...customStyles.card,
+          position: 'absolute',
+          bottom: sideMargins,
+          left: sideMargins,
+        }}
+      >
+        <CardContent>
+          <Typography gutterBottom>
+            COVID 19 GLOBE
+          </Typography>
+          <Typography style={{fontSize: 10}} gutterBottom>
+            Data Sourced from <span><Link href="https://github.com/CSSEGISandData/COVID-19" target="_blank">JHU CSSE COVID-19 Data</Link></span>
+          </Typography>
+          <Typography style={{fontSize: 10}} gutterBottom>
+            View <span><Link href="https://github.com/mjguggen/covid-globe" target="_blank">GitHub Repository</Link></span>
+          </Typography>
+          <Typography style={{fontSize: 10}} gutterBottom>
+            Created by <spna><Link href="https://mikeguggenbuehl.com/" target="_blank">Mike Guggenbuehl</Link></spna>
+          </Typography>
+        </CardContent>
       </Card>
 
       {
