@@ -27,8 +27,6 @@ app.listen(PORT, async () => {
 
     await connectDB()
 
-    getAll()
-
     cron.schedule(
         '0 0 */2 * * *', 
         () => {
