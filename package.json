@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.ts",
     "build": "tsc",
-    "buildProd": "npm install && cd client && npm install && npm build",
+    "buildProd": "npm install && cd client && npm install && npm run build",
     "start": "ts-node index.ts"
   },
   "author": "Mike Guggenbuehl",
