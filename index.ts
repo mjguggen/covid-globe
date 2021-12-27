@@ -6,7 +6,7 @@ const cors = require('cors')
 const cron = require('node-cron')
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: process.env.CLIENT || 'http://localhost:3000' }));
 app.use(express.json());
 app.use('/api/data', require('./routes/data'))
 app.get('/api', (req, res) => res.send('GET request to the homepage'))
