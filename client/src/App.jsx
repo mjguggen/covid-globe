@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import api from './util/api'
 import Globe from 'react-globe.gl';
-import moment from 'moment'
+import moment from 'moment-timezone'
 import {csvParse} from 'd3-dsv'
 import {interpolateYlOrRd, scaleSequentialSqrt} from 'd3'
 import {Radio, Card, CardContent, createTheme, ThemeProvider, Button, TextField, CircularProgress, Typography, Link } from '@mui/material'
@@ -10,6 +10,7 @@ import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import ErrorIcon from '@mui/icons-material/Error';
 import { DatePicker} from '@mui/lab';
 import './App.css'
+
 
 const theme = createTheme({
   palette: {
@@ -34,6 +35,8 @@ function getWindowDimensions() {
 }
 
 function App() {
+  moment.tz.setDefault("America/New_York");
+  
   const today = moment().subtract(1, 'days').format('MM-DD-YYYY')
   const [data, setData] = useState()
   const [filteredData, setFilteredData] = useState()
@@ -60,12 +63,10 @@ function App() {
     try {
       setLoading(true)
 
-      const data = await api.get(`/data/${date}`).then(res => {
-        return csvParse(res.data.data)
-      })
+      const {data} = await api.get(`/data/${date}`)
 
       //@ts-ignore
-      setData(data)
+      setData(csvParse(data.data))
       setError('')
       setLoading(false)
     } catch (err) {
