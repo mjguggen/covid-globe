@@ -58,10 +58,9 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [maxLoading, setMaxLoading] = useState(false)
   const [filterLoading, setFilterLoading] = useState(false)
-  const [dateRangeLoading, setDateRangeLoading] = useState(false)
   const [error, setError] = useState("")
   const [max, setMax] = useState(0)
-  const [activeCategory, setActiveCategory] = useState('Confirmed')
+  const [activeCategory, setActiveCategory] = useState('confirmed')
   const [activeCountry, setActiveCountry] = useState(null)
   const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
 
@@ -76,12 +75,10 @@ function App() {
 
   const getDateRange = async () => {
     try {
-      setDateRangeLoading(true)
       const range = await api.get('/data/range').then(res => res.data)
 
       setDateRange(range)
       setDate(range.max)
-      setDateRangeLoading(false)
 
       return range.max
     } catch (err) {
@@ -94,7 +91,7 @@ function App() {
     try {
       setLoading(true)
 
-      const data = await api.get(`/data/${date}`).then(async res => csvParse(res.data.data))
+      const data = await api.get(`/data/${date}`).then(res => res.data.data)
 
       //@ts-ignore
       setData(data)
@@ -124,7 +121,7 @@ function App() {
 
   const updateFilterData = async() => {
     setFilterLoading(true)
-    const activeCountryFilter = activeCountry ? data.filter(i => i["Country_Region"] === activeCountry) : data
+    const activeCountryFilter = activeCountry ? data.filter(i => i?.country === activeCountry) : data
     
     setFilteredData(activeCountryFilter)
     setMaxNumber(activeCountryFilter, activeCategory)
@@ -137,13 +134,13 @@ function App() {
   }
 
   const changeActiveCountry = (country) => {
-    setActiveCountry(country?.["Country_Region"])
+    setActiveCountry(country?.country)
 
     if (country) {
       globeRef.current.controls().autoRotate = false
       globeRef.current.pointOfView({
-        lat: country["Lat"], 
-        lng: country["Long_"], 
+        lat: country?.lat, 
+        lng: country?.lng, 
         altitude: 1.5
       }, 2000)
     } else {
@@ -269,9 +266,9 @@ function App() {
           <div style={{...customStyles.cardContainter}}>
             <div style={customStyles.radioEl}>
               <Radio
-                checked={activeCategory === "Confirmed"}
+                checked={activeCategory === "confirmed"}
                 onChange={changeCategory}
-                value="Confirmed"
+                value="confirmed"
               />
               <Typography style={{fontSize: isMobile ? 10 : 12}}>
                 Confirmed Cases
@@ -280,9 +277,9 @@ function App() {
 
             <div style={customStyles.radioEl}>
               <Radio
-                checked={activeCategory === "Deaths"}
+                checked={activeCategory === "deaths"}
                 onChange={changeCategory}
-                value="Deaths"
+                value="deaths"
               />
               <Typography style={{fontSize: isMobile ? 10 : 12}}>
                 Deaths
@@ -295,12 +292,12 @@ function App() {
           ref={globeRef}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
           hexLabel={(d) => `
-            <div className="label" style={{color: 'red'}}>${d.points[0]["Combined_Key"]} | ${numberWithCommas(d.points[0][activeCategory])} </div>
+            <div className="label" style={{color: 'red'}}>${d.points[0]?.fullLocation} | ${numberWithCommas(d.points[0][activeCategory])} </div>
           `}
           hexBinPointsData={filteredData}
           hexBinPointWeight={activeCategory}
-          hexBinPointLat="Lat"
-          hexBinPointLng="Long_"
+          // hexBinPointLat="Lat"
+          // hexBinPointLng="Long_"
           //@ts-ignore
           hexAltitude={({sumWeight}) => sumWeight / max}
           hexTopColor={({sumWeight}) => weightColor(sumWeight)}
