@@ -226,7 +226,7 @@ function App() {
             right: isMobile ? 0 : 'auto',
             width: 200,
             marginLeft: 'auto',
-            marginRight: 'auto'
+            marginRight: 'auto',
             display: isMobile ? 'none' : 'block'
           }}
           raised
