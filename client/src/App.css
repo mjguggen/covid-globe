@@ -1,3 +1,7 @@
 .scene-tooltip {
     background-color: #000036;
 }
+
+.PrivatePickersToolbar-root {
+    display: none !important
+}

@@ -4,11 +4,26 @@ import Globe from 'react-globe.gl';
 import moment from 'moment-timezone'
 import {csvParse} from 'd3-dsv'
 import {interpolateYlOrRd, scaleSequentialSqrt} from 'd3'
-import {Radio, Card, CardContent, createTheme, ThemeProvider, Button, TextField, CircularProgress, Typography, Link } from '@mui/material'
+import {
+  Radio, 
+  Card, 
+  CardContent, 
+  createTheme, 
+  ThemeProvider, 
+  Button, 
+  TextField, 
+  CircularProgress, 
+  Typography, 
+  Link,
+} from '@mui/material'
 import AdapterDate from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import ErrorIcon from '@mui/icons-material/Error';
-import { DatePicker} from '@mui/lab';
+import { 
+  DatePicker,
+  DesktopDatePicker,
+  MobileDatePicker
+} from '@mui/lab';
 import './App.css'
 
 
@@ -141,7 +156,7 @@ function App() {
 
   const checkDateInRange = (dateToCheck) => {
     const formattedNewDate = moment(dateToCheck).format('MM-DD-YYYY')
-    return Boolean(moment(formattedNewDate).isBetween(dateRange?.min, dateRange?.max, undefined, '[)'))
+    return Boolean(moment(formattedNewDate).isBetween(dateRange?.min, dateRange?.max, undefined, '[]'))
   }
 
   const changeDate = async(newDate) => {
@@ -207,20 +222,37 @@ function App() {
             ...customStyles.radioContainer, 
             ...customStyles.card,
             top: sideMargins,
-            left: sideMargins,
-            display: isMobile ? 'none' : 'block'
+            left: isMobile ? 0 : sideMargins,
+            right: isMobile ? 0 : 'auto',
+            width: 200,
+            marginLeft: 'auto',
+            marginRight: 'auto'
+            // display: isMobile ? 'none' : 'block'
           }}
           raised
         >
           <div style={{...customStyles.cardContainter}}>
             <LocalizationProvider dateAdapter={AdapterDate}>
-              <DatePicker
-                label={date}
-                value={date}
-                shouldDisableDate={({_d}) => !checkDateInRange(_d)}
-                onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
-                renderInput={(params) => !dateRange ? <CircularProgress/> : <TextField {...params} label="Date" disabled />}
-              />
+              {
+                isMobile
+                  ?
+                    <MobileDatePicker
+                      label={date}
+                      value={date}
+                      shouldDisableDate={({_d}) => !checkDateInRange(_d)}
+                      onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
+                      renderInput={(params) => !dateRange ? <CircularProgress/> : <TextField {...params} label="Date" />}
+                    />
+                  : 
+                    <DesktopDatePicker
+                      label={date}
+                      value={date}
+                      shouldDisableDate={({_d}) => !checkDateInRange(_d)}
+                      onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
+                      renderInput={(params) => !dateRange ? <CircularProgress/> : <TextField {...params} label="Date" disabled />}
+                    />
+              }
+
             </LocalizationProvider>
           </div>
         </Card>
