@@ -1,11 +1,12 @@
 require('dotenv').config()
 const express = require('express')
 const connectDB = require('./mongo/db')
-const getAll = require('./util/getData')
 const cors = require('cors')
 const cron = require('node-cron')
 const path = require('path');
 const app = express();
+
+connectDB()
 
 app.use(cors({ origin: process.env.CLIENT || 'http://localhost:3000' }));
 app.use(express.json());
@@ -24,13 +25,4 @@ if (process.env.NODE_ENV === 'production') {
 
 app.listen(PORT, async () => {
     console.log(`Server has started on ${PORT}`)
-
-    await connectDB()
-
-    cron.schedule(
-        '0 0 */2 * * *', 
-        () => {
-            getAll()
-        }
-    )
 })
