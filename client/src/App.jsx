@@ -36,14 +36,14 @@ function getWindowDimensions() {
 
 function App() {
   moment.tz.setDefault("America/New_York");
-  
-  const today = moment().subtract(1, 'days').format('MM-DD-YYYY')
   const [data, setData] = useState()
   const [filteredData, setFilteredData] = useState()
-  const [date, setDate] = useState(today)
-  const [loading, setLoading] = useState(false)
+  const [dateRange, setDateRange] = useState()
+  const [date, setDate] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [maxLoading, setMaxLoading] = useState(false)
   const [filterLoading, setFilterLoading] = useState(false)
+  const [dateRangeLoading, setDateRangeLoading] = useState(false)
   const [error, setError] = useState("")
   const [max, setMax] = useState(0)
   const [activeCategory, setActiveCategory] = useState('Confirmed')
@@ -59,14 +59,30 @@ function App() {
     }
   }
 
-  const getConfirmed = async () => {
+  const getDateRange = async () => {
+    try {
+      setDateRangeLoading(true)
+      const range = await api.get('/data/range').then(res => res.data)
+
+      setDateRange(range)
+      setDate(range.max)
+      setDateRangeLoading(false)
+
+      return range.max
+    } catch (err) {
+      console.error(err)
+      setError(err.message)
+    }
+  }
+
+  const getConfirmed = async (date) => {
     try {
       setLoading(true)
 
-      const {data} = await api.get(`/data/${date}`)
+      const data = await api.get(`/data/${date}`).then(async res => csvParse(res.data.data))
 
       //@ts-ignore
-      setData(csvParse(data.data))
+      setData(data)
       setError('')
       setLoading(false)
     } catch (err) {
@@ -77,10 +93,15 @@ function App() {
   }
 
   const weightColor = scaleSequentialSqrt(interpolateYlOrRd).domain([0, max]);
-  
+
+  const init = async () => {
+    const date = await getDateRange()
+    await getConfirmed(date)
+  }
+
   useEffect(() => {
-    getConfirmed()
-  }, [date])
+    init()
+  }, [])
 
   useEffect(() => {
     updateFilterData()
@@ -120,17 +141,21 @@ function App() {
 
   const checkDateInRange = (dateToCheck) => {
     const formattedNewDate = moment(dateToCheck).format('MM-DD-YYYY')
-    return Boolean(moment(formattedNewDate).isBetween('01-01-2021', today, undefined, '[]'))
+    return Boolean(moment(formattedNewDate).isBetween(dateRange?.min, dateRange?.max, undefined, '[)'))
   }
 
-  const changeDate = (newDate) => {
+  const changeDate = async(newDate) => {
     const inRange = checkDateInRange(newDate)
 
     if (!inRange) {
       return
     }
 
-    setDate(moment(newDate).format('MM-DD-YYYY'))
+    const formattedDate = moment(newDate).format('MM-DD-YYYY')
+
+    setDate(formattedDate)
+
+    await getConfirmed(formattedDate)
   }
 
   useEffect(() => {
@@ -149,7 +174,6 @@ function App() {
   const customStyles = {
     card: {
       backgroundColor: 'transparent',
-      // display: windowDimensions.width < 400 ? 'none' : 'block'
     },
     radioContainer: {
       position: 'absolute',
@@ -195,7 +219,7 @@ function App() {
                 value={date}
                 shouldDisableDate={({_d}) => !checkDateInRange(_d)}
                 onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
-                renderInput={(params) => <TextField {...params} label="Date" disabled />}
+                renderInput={(params) => !dateRange ? <CircularProgress/> : <TextField {...params} label="Date" disabled />}
               />
             </LocalizationProvider>
           </div>

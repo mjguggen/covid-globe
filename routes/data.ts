@@ -38,6 +38,27 @@ router.get('/today', async (req, res) => {
     }
 })
 
+// @route GET api/data/range
+router.get('/range', async (req, res) => {
+    try {
+        const dates = await Csv.find(
+            {}, 
+            {
+                date: 1,
+                _id: 0
+            }
+        ).then(res => res.map(({date}) => moment(date)))
+
+        const max = moment.max(dates).format('MM-DD-YYYY')
+        const min = moment.min(dates).format('MM-DD-YYYY')
+        
+        return res.status(200).json({max, min})
+    } catch (err) {
+        console.error(err.message);
+        return res.status(500).json({message: "Server Error"});
+    }
+})
+
 // @route GET api/data/:req_date
 router.get('/:req_date', async ({ params: { req_date } }, res) => {
     try {
