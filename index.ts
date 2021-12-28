@@ -26,6 +26,8 @@ app.listen(PORT, async () => {
     console.log(`Server has started on ${PORT}`)
 
     await connectDB()
+    
+    getAll()
 
     cron.schedule(
         '0 0 */1 * * *', 
