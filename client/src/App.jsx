@@ -91,7 +91,14 @@ function App() {
     try {
       setLoading(true)
 
-      const data = await api.get(`/data/${date}`).then(res => res.data.data)
+      const data = await api.get(`/data/${date}`).then(res => csvParse(res.data.data, ({lat, lng, confirmed, deaths, fullLocation, country}) => ({
+        lat: +lat,
+        lng: +lng,
+        confirmed: +confirmed,
+        deaths: +deaths,
+        fullLocation,
+        country
+      })))
 
       //@ts-ignore
       setData(data)
@@ -153,7 +160,7 @@ function App() {
 
   const checkDateInRange = (dateToCheck) => {
     const formattedNewDate = moment(dateToCheck).format('MM-DD-YYYY')
-    return Boolean(moment(formattedNewDate).isBetween(dateRange?.min, dateRange?.max, undefined, '[]'))
+    return Boolean(moment(formattedNewDate).isBetween(dateRange?.min, dateRange?.max, undefined, '[)'))
   }
 
   const changeDate = async(newDate) => {
@@ -296,8 +303,6 @@ function App() {
           `}
           hexBinPointsData={filteredData}
           hexBinPointWeight={activeCategory}
-          // hexBinPointLat="Lat"
-          // hexBinPointLng="Long_"
           //@ts-ignore
           hexAltitude={({sumWeight}) => sumWeight / max}
           hexTopColor={({sumWeight}) => weightColor(sumWeight)}
