@@ -8,7 +8,7 @@ const app = express();
 
 connectDB()
 
-app.use(cors({ origin: process.env.CLIENT || 'http://localhost:3000' }));
+app.use(cors());
 app.use(express.json());
 app.use('/api/data', require('./routes/data'))
 app.get('/api', (req, res) => res.send('GET request to the homepage'))
