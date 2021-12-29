@@ -6,10 +6,14 @@ const CsvSchema = new Schema({
         type: String,
         required: true
     },
+    lastUpdate: {
+        type: String,
+        required: true
+    },
     data: {
         type: String,
         required: true
     }
 })
 
-module.exports = mongoose.model('csv', CsvSchema)
+module.exports = mongoose.model('newcsv', CsvSchema)
