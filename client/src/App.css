@@ -1,5 +1,12 @@
 .scene-tooltip {
-    background-color: #000036;
+    background-color: rgba(0, 0, 18, .8);
+    
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.scene-tooltip:empty {
+    padding: 0px
 }
 
 .PrivatePickersToolbar-root {

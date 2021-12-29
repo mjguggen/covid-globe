@@ -20,9 +20,7 @@ import AdapterDate from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import ErrorIcon from '@mui/icons-material/Error';
 import { 
-  DatePicker,
-  DesktopDatePicker,
-  MobileDatePicker
+  DatePicker
 } from '@mui/lab';
 import './App.css'
 
@@ -236,28 +234,18 @@ function App() {
           raised
         >
           <div style={{...customStyles.cardContainter}}>
-            <LocalizationProvider dateAdapter={AdapterDate}>
-              {
-                isMobile
-                  ?
-                    <MobileDatePicker
-                      label={date}
-                      value={date}
-                      shouldDisableDate={({_d}) => !checkDateInRange(_d)}
-                      onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
-                      renderInput={(params) => !dateRange ? <CircularProgress/> : <TextField {...params} label="Date" />}
-                    />
-                  : 
-                    <DesktopDatePicker
-                      label={date}
-                      value={date}
-                      shouldDisableDate={({_d}) => !checkDateInRange(_d)}
-                      onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
-                      renderInput={(params) => !dateRange ? <CircularProgress/> : <TextField {...params} label="Date" disabled />}
-                    />
-              }
-
-            </LocalizationProvider>
+            {
+              Boolean(dateRange && date) && 
+                <LocalizationProvider dateAdapter={AdapterDate}>
+                  <DatePicker
+                    label={date}
+                    value={date}
+                    shouldDisableDate={({_d}) => !checkDateInRange(_d)}
+                    onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
+                    renderInput={(params) => <TextField {...params} label="Date" disabled />}
+                  />
+                </LocalizationProvider>
+            }
           </div>
         </Card>
 
@@ -298,9 +286,7 @@ function App() {
         <Globe
           ref={globeRef}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-          hexLabel={(d) => `
-            <div className="label" style={{color: 'red'}}>${d.points[0]?.fullLocation} | ${numberWithCommas(d.points[0][activeCategory])} </div>
-          `}
+          hexLabel={(d) => `${d.points[0]?.fullLocation} | ${numberWithCommas(d.points[0][activeCategory])} ${activeCategory === 'confirmed' ? 'Confirmed Cases' : 'Deaths'}`}
           hexBinPointsData={filteredData}
           hexBinPointWeight={activeCategory}
           //@ts-ignore
