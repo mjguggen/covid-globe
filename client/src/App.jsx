@@ -23,7 +23,7 @@ import {
   DatePicker
 } from '@mui/lab';
 import './App.css'
-
+import {useEffectOnce} from 'react-use'
 
 const theme = createTheme({
   palette: {
@@ -61,7 +61,7 @@ function App() {
   })
   const [error, setError] = useState("")
   const [max, setMax] = useState(0)
-  const [activeCategory, setActiveCategory] = useState('confirmed')
+  const [activeCategory, setActiveCategory] = useState('incidentRate')
   const [activeCountry, setActiveCountry] = useState(null)
   const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
 
@@ -110,13 +110,14 @@ function App() {
     try {
       startLoading('data')
 
-      const data = await api.get(`/data/${date}`).then(async res => csvParse(res.data.data, ({lat, lng, confirmed, deaths, fullLocation, country}) => ({
+      const data = await api.get(`/data/${date}`).then(async res => csvParse(res.data.data, ({lat, lng, confirmed, deaths, fullLocation, country, caseFatality, incidentRate}) => ({
         lat: +lat,
         lng: +lng,
         confirmed: +confirmed,
         deaths: +deaths,
         fullLocation,
-        country
+        country,
+        incidentRate: +incidentRate
       })))
 
       //@ts-ignore
@@ -137,9 +138,9 @@ function App() {
     await getConfirmed(date)
   }
 
-  useEffect(() => {
+  useEffectOnce(() => {
     init()
-  }, [])
+  })
 
   useEffect(() => {
     updateFilterData()
@@ -229,12 +230,12 @@ function App() {
 
   const globeRef = useRef()
 
-  useEffect(() => {
+  useEffectOnce(() => {
     if (!isMobile) {
       globeRef.current.controls().autoRotate = true;
       globeRef.current.controls().autoRotateSpeed = .3;
     }
-  }, []);
+  });
 
   const isLoading = Object.values(loading).some(i => i)
 
@@ -251,7 +252,8 @@ function App() {
             right: isMobile ? 0 : 'auto',
             width: 200,
             marginLeft: 'auto',
-            marginRight: 'auto'
+            marginRight: 'auto',
+            display: isMobile ? 'none' : 'block'
           }}
           raised
         >
@@ -261,7 +263,7 @@ function App() {
                 <LocalizationProvider dateAdapter={AdapterDate}>
                   <DatePicker
                     label={date}
-                    value={date}
+                    value={moment(date, 'MM-DD-YYYY')}
                     shouldDisableDate={({_d}) => !checkDateInRange(_d)}
                     onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
                     renderInput={(params) => <TextField {...params} label="Date" disabled />}
@@ -281,6 +283,17 @@ function App() {
           raised
         >
           <div style={{...customStyles.cardContainter}}>
+          <div style={customStyles.radioEl}>
+              <Radio
+                checked={activeCategory === "incidentRate"}
+                onChange={changeCategory}
+                value="incidentRate"
+              />
+              <Typography style={{fontSize: isMobile ? 10 : 12}}>
+                Infection Rate
+              </Typography>
+            </div>
+
             <div style={customStyles.radioEl}>
               <Radio
                 checked={activeCategory === "confirmed"}
@@ -302,7 +315,6 @@ function App() {
                 Deaths
               </Typography>
             </div>
-
           </div>
         </Card>
         <Globe
