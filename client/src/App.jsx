@@ -117,6 +117,7 @@ function App() {
         deaths: +deaths,
         fullLocation,
         country,
+        // caseFatality: +caseFatality,
         incidentRate: +incidentRate
       })))
 
@@ -305,6 +306,17 @@ function App() {
               </Typography>
             </div>
 
+            {/* <div style={customStyles.radioEl}>
+              <Radio
+                checked={activeCategory === "caseFatality"}
+                onChange={changeCategory}
+                value="caseFatality"
+              />
+              <Typography style={{fontSize: isMobile ? 10 : 12}}>
+                Fatality Rate
+              </Typography>
+            </div> */}
+
             <div style={customStyles.radioEl}>
               <Radio
                 checked={activeCategory === "deaths"}
@@ -320,7 +332,12 @@ function App() {
         <Globe
           ref={globeRef}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-          hexLabel={(d) => `${d.points[0]?.fullLocation} | ${numberWithCommas(d.points[0][activeCategory])} ${activeCategory === 'confirmed' ? 'Confirmed Cases' : 'Deaths'}`}
+          hexLabel={(d) => `${d.points[0]?.fullLocation} | ${activeCategory === 'confirmed' 
+            ? `Confirmed Cases | ${numberWithCommas(d.points[0][activeCategory])}`
+            : activeCategory === 'deaths' ? `Deaths | ${numberWithCommas(d.points[0][activeCategory])}` 
+            : activeCategory === 'incidentRate' ? `Infection Rate | ${Math.round(d.points[0][activeCategory] / 1000)}%`
+            : ''
+          }`}
           hexBinPointsData={filteredData}
           hexBinPointWeight={activeCategory}
           //@ts-ignore
@@ -336,6 +353,7 @@ function App() {
           height={windowDimensions.height}
         />
       </div>
+
 
       <Card
         style={{
