@@ -332,10 +332,10 @@ function App() {
         <Globe
           ref={globeRef}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-          hexLabel={(d) => `${d.points[0]?.fullLocation} | ${activeCategory === 'confirmed' 
-            ? `Confirmed Cases | ${numberWithCommas(d.points[0][activeCategory])}`
-            : activeCategory === 'deaths' ? `Deaths | ${numberWithCommas(d.points[0][activeCategory])}` 
-            : activeCategory === 'incidentRate' ? `Infection Rate | ${Math.round(d.points[0][activeCategory] / 1000)}%`
+          hexLabel={(d) => `${d.points[0]?.fullLocation} ${activeCategory === 'confirmed' 
+            ? `| Confirmed Cases | ${numberWithCommas(d.points[0][activeCategory])}`
+            : activeCategory === 'deaths' ? `| Deaths | ${numberWithCommas(d.points[0][activeCategory])}` 
+            : activeCategory === 'incidentRate' ? ''
             : ''
           }`}
           hexBinPointsData={filteredData}
