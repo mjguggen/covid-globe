@@ -53,43 +53,64 @@ function App() {
   const [filteredData, setFilteredData] = useState()
   const [dateRange, setDateRange] = useState()
   const [date, setDate] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [maxLoading, setMaxLoading] = useState(false)
-  const [filterLoading, setFilterLoading] = useState(false)
+  const [loading, setLoading] = useState({
+    dateRange: false,
+    data: true,
+    filter: false,
+    max: false
+  })
   const [error, setError] = useState("")
   const [max, setMax] = useState(0)
   const [activeCategory, setActiveCategory] = useState('confirmed')
   const [activeCountry, setActiveCountry] = useState(null)
   const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
 
-  const setMaxNumber = (data, category) => {
+  const setMaxNumber = async (data, category) => {
     if (data) {
-      setMaxLoading(true)
-      const top = data.map(i => parseInt(i?.[category]))
+      startLoading('max')
+      const top = data.map(i => i?.[category])
       setMax(Math.max(...top))
-      setMaxLoading(false)
+      stopLoading('max')
     }
   }
 
   const getDateRange = async () => {
     try {
+      startLoading('dateRange')
       const range = await api.get('/data/range').then(res => res.data)
 
       setDateRange(range)
       setDate(range.max)
 
+      stopLoading('dateRange')
+
       return range.max
     } catch (err) {
+      stopLoading('dateRange')
       console.error(err)
       setError(err.message)
     }
   }
 
+  const startLoading = (val) => {
+    setLoading({
+      ...loading,
+      [val]: true
+    })
+  }
+
+  const stopLoading = (val) => {
+    setLoading({
+      ...loading,
+      [val]: false
+    })
+  } 
+
   const getConfirmed = async (date) => {
     try {
-      setLoading(true)
+      startLoading('data')
 
-      const data = await api.get(`/data/${date}`).then(res => csvParse(res.data.data, ({lat, lng, confirmed, deaths, fullLocation, country}) => ({
+      const data = await api.get(`/data/${date}`).then(async res => csvParse(res.data.data, ({lat, lng, confirmed, deaths, fullLocation, country}) => ({
         lat: +lat,
         lng: +lng,
         confirmed: +confirmed,
@@ -101,9 +122,9 @@ function App() {
       //@ts-ignore
       setData(data)
       setError('')
-      setLoading(false)
+      stopLoading('data')
     } catch (err) {
-      setLoading(false)
+      stopLoading('data')
       console.error(err)
       setError(err.message)
     }
@@ -124,14 +145,14 @@ function App() {
     updateFilterData()
   }, [data, activeCategory, activeCountry])
 
-  const updateFilterData = async() => {
-    setFilterLoading(true)
-    const activeCountryFilter = activeCountry ? data.filter(i => i?.country === activeCountry) : data
+  const updateFilterData = async () => {
+    startLoading('filter')
+    const activeCountryFilter = activeCountry ? await data.filter(i => i?.country === activeCountry) : data
     
     setFilteredData(activeCountryFilter)
     setMaxNumber(activeCountryFilter, activeCategory)
 
-    setFilterLoading(false)
+    stopLoading('filter')
   }
 
   const changeCategory = (e) => {
@@ -157,8 +178,7 @@ function App() {
   }
 
   const checkDateInRange = (dateToCheck) => {
-    const formattedNewDate = moment(dateToCheck).format('MM-DD-YYYY')
-    return Boolean(moment(formattedNewDate).isBetween(dateRange?.min, dateRange?.max, undefined, '[)'))
+    return Boolean(moment(dateToCheck, "MM-DD-YYYY").isBetween(dateRange?.min, dateRange?.max, undefined, '[)'))
   }
 
   const changeDate = async(newDate) => {
@@ -168,11 +188,9 @@ function App() {
       return
     }
 
-    const formattedDate = moment(newDate).format('MM-DD-YYYY')
+    setDate(newDate)
 
-    setDate(formattedDate)
-
-    await getConfirmed(formattedDate)
+    await getConfirmed(newDate)
   }
 
   useEffect(() => {
@@ -212,9 +230,14 @@ function App() {
   const globeRef = useRef()
 
   useEffect(() => {
-    globeRef.current.controls().autoRotate = true;
-    globeRef.current.controls().autoRotateSpeed = .5;
+    if (!isMobile) {
+      globeRef.current.controls().autoRotate = true;
+      globeRef.current.controls().autoRotateSpeed = .3;
+    }
   }, []);
+
+  const isLoading = Object.values(loading).some(i => i)
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -228,8 +251,7 @@ function App() {
             right: isMobile ? 0 : 'auto',
             width: 200,
             marginLeft: 'auto',
-            marginRight: 'auto',
-            display: isMobile ? 'none' : 'block'
+            marginRight: 'auto'
           }}
           raised
         >
@@ -296,6 +318,7 @@ function App() {
           onHexClick={({points}) => {
             changeActiveCountry(points[0])
           }}
+          hexTopCurvatureResolution={1}
           waitForGlobeReady={true}
           width={windowDimensions.width}
           height={windowDimensions.height}
@@ -398,7 +421,7 @@ function App() {
       </Card>
 
       {
-        Boolean(loading || maxLoading || filterLoading) && 
+        Boolean(isLoading) && 
           <CircularProgress 
             style={{
               position: 'absolute',
