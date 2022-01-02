@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useMemo} from 'react';
 import api from './util/api'
 import Globe from 'react-globe.gl';
 import moment from 'moment-timezone'
@@ -15,6 +15,7 @@ import {
   CircularProgress, 
   Typography, 
   Link,
+  Slider
 } from '@mui/material'
 import AdapterDate from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
@@ -64,12 +65,19 @@ function App() {
   const [activeCategory, setActiveCategory] = useState('incidentRate')
   const [activeCountry, setActiveCountry] = useState(null)
   const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
+  const [altitude, setAltitude] = useState(1)
+
+  const changeAltitude = (_e, num) => {
+    if (num !== 1 + (1 - num)) {
+      setAltitude(1 + (1 - num))
+    }
+  }
 
   const setMaxNumber = async (data, category) => {
     if (data) {
       startLoading('max')
       const top = data.map(i => i?.[category])
-      setMax(Math.max(...top))
+      setMax(Math.max(...top) * altitude)
       stopLoading('max')
     }
   }
@@ -143,10 +151,6 @@ function App() {
     init()
   })
 
-  useEffect(() => {
-    updateFilterData()
-  }, [data, activeCategory, activeCountry])
-
   const updateFilterData = async () => {
     startLoading('filter')
     const activeCountryFilter = activeCountry ? await data.filter(i => i?.country === activeCountry) : data
@@ -156,6 +160,10 @@ function App() {
 
     stopLoading('filter')
   }
+
+  useMemo(() => {
+    updateFilterData()
+  }, [data, activeCategory, activeCountry, altitude])
 
   const changeCategory = (e) => {
     setActiveCategory(e.target.value)
@@ -211,10 +219,8 @@ function App() {
   const customStyles = {
     card: {
       backgroundColor: 'transparent',
-    },
-    radioContainer: {
       position: 'absolute',
-      zIndex: 100,
+      zIndex: 100
     },
     cardContainter: {
       padding: isMobile ? 10 : 15
@@ -246,7 +252,6 @@ function App() {
       <div className="App">
         <Card
           style={{
-            ...customStyles.radioContainer, 
             ...customStyles.card,
             top: sideMargins,
             left: isMobile ? 0 : sideMargins,
@@ -274,61 +279,103 @@ function App() {
           </div>
         </Card>
 
-        <Card 
+        <div
           style={{
-            ...customStyles.radioContainer, 
-            ...customStyles.topRight, 
-            ...customStyles.card,
+            position: 'absolute',
+            top: sideMargins,
+            right: sideMargins,
+            width: 200,
+            zIndex: 200,
             display: isMobile ? 'none' : 'block'
           }}
-          raised
         >
-          <div style={{...customStyles.cardContainter}}>
-          <div style={customStyles.radioEl}>
-              <Radio
-                checked={activeCategory === "incidentRate"}
-                onChange={changeCategory}
-                value="incidentRate"
-              />
-              <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                Infection Rate
+          <Card 
+            style={{
+              ...customStyles.card,
+              position: 'static',
+              width: '100%',
+            }}
+            raised
+          >
+            <div style={{...customStyles.cardContainter}}>
+              <Typography variant="overline">
+                Filters
               </Typography>
-            </div>
+              <div style={customStyles.radioEl}>
+                <Radio
+                  checked={activeCategory === "incidentRate"}
+                  onChange={changeCategory}
+                  value="incidentRate"
+                />
+                <Typography style={{fontSize: isMobile ? 10 : 12}}>
+                  Infection Rate
+                </Typography>
+              </div>
 
-            <div style={customStyles.radioEl}>
-              <Radio
-                checked={activeCategory === "confirmed"}
-                onChange={changeCategory}
-                value="confirmed"
-              />
-              <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                Confirmed Cases
-              </Typography>
-            </div>
+              <div style={customStyles.radioEl}>
+                <Radio
+                  checked={activeCategory === "confirmed"}
+                  onChange={changeCategory}
+                  value="confirmed"
+                />
+                <Typography style={{fontSize: isMobile ? 10 : 12}}>
+                  Confirmed Cases
+                </Typography>
+              </div>
 
-            <div style={customStyles.radioEl}>
-              <Radio
-                checked={activeCategory === "caseFatality"}
-                onChange={changeCategory}
-                value="caseFatality"
-              />
-              <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                Fatality Rate
-              </Typography>
-            </div>
+              <div style={customStyles.radioEl}>
+                <Radio
+                  checked={activeCategory === "caseFatality"}
+                  onChange={changeCategory}
+                  value="caseFatality"
+                />
+                <Typography style={{fontSize: isMobile ? 10 : 12}}>
+                  Fatality Rate
+                </Typography>
+              </div>
 
-            <div style={customStyles.radioEl}>
-              <Radio
-                checked={activeCategory === "deaths"}
-                onChange={changeCategory}
-                value="deaths"
-              />
-              <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                Deaths
-              </Typography>
+              <div style={customStyles.radioEl}>
+                <Radio
+                  checked={activeCategory === "deaths"}
+                  onChange={changeCategory}
+                  value="deaths"
+                />
+                <Typography style={{fontSize: isMobile ? 10 : 12}}>
+                  Deaths
+                </Typography>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          <Card
+            style={{
+                ...customStyles.card,
+                position: 'static',
+                marginTop: 20,
+                width: '100%',
+            }}
+          >
+            <div
+               style={{...customStyles.cardContainter}}
+            >
+              <Typography variant="overline">
+                Point Variation
+              </Typography>
+              <Slider
+                sliderPosition={altitude}
+                size="small"
+                defaultValue={1}
+                step={.2}
+                marks
+                min={.2}
+                max={1}
+                onChange={changeAltitude}
+              />
+
+            </div>
+          </Card>
+        </div>
+        
         <Globe
           ref={globeRef}
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
@@ -358,7 +405,6 @@ function App() {
       <Card
         style={{
           ...customStyles.card,
-          position: 'absolute',
           bottom: isMobile ? 'auto' : sideMargins,
           right: isMobile ? 0 : sideMargins,
           left: isMobile ? 0 : 'auto',
