@@ -117,7 +117,7 @@ function App() {
         deaths: +deaths,
         fullLocation,
         country,
-        // caseFatality: +caseFatality,
+        caseFatality: +caseFatality,
         incidentRate: +incidentRate
       })))
 
@@ -306,7 +306,7 @@ function App() {
               </Typography>
             </div>
 
-            {/* <div style={customStyles.radioEl}>
+            <div style={customStyles.radioEl}>
               <Radio
                 checked={activeCategory === "caseFatality"}
                 onChange={changeCategory}
@@ -315,7 +315,7 @@ function App() {
               <Typography style={{fontSize: isMobile ? 10 : 12}}>
                 Fatality Rate
               </Typography>
-            </div> */}
+            </div>
 
             <div style={customStyles.radioEl}>
               <Radio
