@@ -89,7 +89,7 @@ function App() {
       startLoading('dateRange')
       const range = await api.get('/data/range').then(res => res.data)
 
-      const latest = moment(range.max).format('MM-DD-YYYY')
+      const latest = range.max
 
       setDateRange(range)
       setDate(latest)
@@ -121,7 +121,7 @@ function App() {
     try {
       startLoading('data')
 
-      const data = await api.get(`/data/${date}`)
+      const data = await api.get(`/data/${moment(date).format('MM-DD-YYYY')}`)
         .then(async res => csvParse(res.data, ({lat, lng, confirmed, deaths, fullLocation, country, caseFatality, incidentRate}) => ({
         lat: +lat,
         lng: +lng,
@@ -192,10 +192,10 @@ function App() {
   }
 
   const checkDateInRange = (dateToCheck) => {
-    return Boolean(moment(dateToCheck, "MM-DD-YYYY").isBetween(dateRange?.min, dateRange?.max, undefined, '[)'))
+    return Boolean(moment(dateToCheck).isBetween(dateRange?.min, dateRange?.max, undefined, '[)'))
   }
 
-  const changeDate = async(newDate) => {
+  const changeDate = async (newDate) => {
     const inRange = checkDateInRange(newDate)
 
     if (!inRange) {
@@ -214,7 +214,7 @@ function App() {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [windowDimensions.width]);
 
   const isMobile = Boolean(windowDimensions.width < 500)
   const sideMargins = isMobile ? 10 : 20
@@ -289,13 +289,12 @@ function App() {
               Boolean(dateRange && date) && 
                 <LocalizationProvider dateAdapter={AdapterDate}>
                   <DatePicker
-                    label={date}
-                    value={moment(date, 'MM-DD-YYYY')}
+                    // label={moment(date).format('MM-DD-YYYY')}
+                    value={date}
                     shouldDisableDate={({_d}) => !checkDateInRange(_d)}
-                    onChange={({_d}) => { 
-                      return (changeDate(moment(_d).format('MM-DD-YYYY')))
-                    }}
-                    renderInput={(params) => <TextField {...params} label="Date" disabled />}
+                    onChange={({_d}) => changeDate(_d)}
+                    disableCloseOnSelect={false}
+                    renderInput={(params) => <TextField {...params} label="Date" disabled value={date} />}
                   />
                 </LocalizationProvider>
             }
