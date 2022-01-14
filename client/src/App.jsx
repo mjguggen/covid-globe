@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useMemo} from 'react';
+import React, {useEffect, useState, useRef, useMemo, useCallback} from 'react';
 import api from './util/api'
 import Globe from 'react-globe.gl';
 import moment from 'moment-timezone'
@@ -15,7 +15,8 @@ import {
   CircularProgress, 
   Typography, 
   Link,
-  Slider
+  Slider,
+  ButtonGroup
 } from '@mui/material'
 import AdapterDate from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
@@ -25,6 +26,7 @@ import {
 } from '@mui/lab';
 import './App.css'
 import {useEffectOnce} from 'react-use'
+import globeImg from './globe-img.jpeg'
 
 const theme = createTheme({
   palette: {
@@ -68,9 +70,9 @@ function App() {
   const [altitude, setAltitude] = useState(1)
 
   const changeAltitude = (_e, num) => {
-    if (num !== 1 + (1 - num)) {
-      setAltitude(1 + (1 - num))
-    }
+    startLoading('altitude')
+    setAltitude(1 + (1 - num))
+    stopLoading('altitude')
   }
 
   const setMaxNumber = async (data, category) => {
@@ -87,12 +89,13 @@ function App() {
       startLoading('dateRange')
       const range = await api.get('/data/range').then(res => res.data)
 
+      const latest = moment(range.max).format('MM-DD-YYYY')
+
       setDateRange(range)
-      setDate(range.max)
+      setDate(latest)
 
       stopLoading('dateRange')
-
-      return range.max
+      return latest
     } catch (err) {
       stopLoading('dateRange')
       console.error(err)
@@ -118,7 +121,8 @@ function App() {
     try {
       startLoading('data')
 
-      const data = await api.get(`/data/${date}`).then(async res => csvParse(res.data.data, ({lat, lng, confirmed, deaths, fullLocation, country, caseFatality, incidentRate}) => ({
+      const data = await api.get(`/data/${date}`)
+        .then(async res => csvParse(res.data, ({lat, lng, confirmed, deaths, fullLocation, country, caseFatality, incidentRate}) => ({
         lat: +lat,
         lng: +lng,
         confirmed: +confirmed,
@@ -165,8 +169,8 @@ function App() {
     updateFilterData()
   }, [data, activeCategory, activeCountry, altitude])
 
-  const changeCategory = (e) => {
-    setActiveCategory(e.target.value)
+  const changeCategory = (val) => {
+    setActiveCategory(val)
   }
 
   const changeActiveCountry = (country) => {
@@ -246,6 +250,24 @@ function App() {
 
   const isLoading = Object.values(loading).some(i => i)
 
+  const buttons = [
+    {
+      val: 'incidentRate',
+      title: 'Incident Rate'
+    },
+    {
+      val: "confirmed",
+      title: "confirmed Cases"
+    },
+    {
+      val: "caseFatality",
+      title: "Fatality Rate"
+    },
+    {
+      val: "deaths",
+      title: "Deaths"
+    }
+  ]
 
   return (
     <ThemeProvider theme={theme}>
@@ -256,10 +278,9 @@ function App() {
             top: sideMargins,
             left: isMobile ? 0 : sideMargins,
             right: isMobile ? 0 : 'auto',
-            width: 200,
             marginLeft: 'auto',
             marginRight: 'auto',
-            display: isMobile ? 'none' : 'block'
+            width: 'fit-content'
           }}
           raised
         >
@@ -271,7 +292,9 @@ function App() {
                     label={date}
                     value={moment(date, 'MM-DD-YYYY')}
                     shouldDisableDate={({_d}) => !checkDateInRange(_d)}
-                    onChange={({_d}) => changeDate(moment(_d).format('MM-DD-YYYY'))}
+                    onChange={({_d}) => { 
+                      return (changeDate(moment(_d).format('MM-DD-YYYY')))
+                    }}
                     renderInput={(params) => <TextField {...params} label="Date" disabled />}
                   />
                 </LocalizationProvider>
@@ -282,68 +305,41 @@ function App() {
         <div
           style={{
             position: 'absolute',
-            top: sideMargins,
-            right: sideMargins,
-            width: 200,
+            top: isMobile ? 'auto' : sideMargins,
+            right: isMobile ? 0 : sideMargins,
+            left: isMobile ? 0 : 'auto',
+            bottom : isMobile ? 75 : 'auto',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            width: isMobile ? (windowDimensions.width) - (sideMargins * 2) : 'fit-content',
             zIndex: 200,
-            display: isMobile ? 'none' : 'block'
           }}
         >
           <Card 
             style={{
               ...customStyles.card,
-              position: 'static',
-              width: '100%',
+              position: 'static'
             }}
             raised
           >
             <div style={{...customStyles.cardContainter}}>
-              <Typography variant="overline">
-                Filters
-              </Typography>
-              <div style={customStyles.radioEl}>
-                <Radio
-                  checked={activeCategory === "incidentRate"}
-                  onChange={changeCategory}
-                  value="incidentRate"
-                />
-                <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                  Infection Rate
-                </Typography>
-              </div>
-
-              <div style={customStyles.radioEl}>
-                <Radio
-                  checked={activeCategory === "confirmed"}
-                  onChange={changeCategory}
-                  value="confirmed"
-                />
-                <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                  Confirmed Cases
-                </Typography>
-              </div>
-
-              <div style={customStyles.radioEl}>
-                <Radio
-                  checked={activeCategory === "caseFatality"}
-                  onChange={changeCategory}
-                  value="caseFatality"
-                />
-                <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                  Fatality Rate
-                </Typography>
-              </div>
-
-              <div style={customStyles.radioEl}>
-                <Radio
-                  checked={activeCategory === "deaths"}
-                  onChange={changeCategory}
-                  value="deaths"
-                />
-                <Typography style={{fontSize: isMobile ? 10 : 12}}>
-                  Deaths
-                </Typography>
-              </div>
+                <ButtonGroup
+                  orientation={isMobile ? 'horizontal' : 'vertical'}
+                  size={isMobile ? 'small' : 'medium'}
+                  fullWidth={isMobile ? true : false}
+                >
+                  {
+                    buttons.map(({val, title}) => (
+                      <Button
+                        key={val}
+                        variant={activeCategory === val ? "contained" : "outlined"}
+                        onClick={() => changeCategory(val)}
+                      >
+                        {title}
+                      </Button>
+                    ))
+                  }
+                </ButtonGroup>
             </div>
           </Card>
 
@@ -351,8 +347,9 @@ function App() {
             style={{
                 ...customStyles.card,
                 position: 'static',
-                marginTop: 20,
+                marginTop: 10,
                 width: '100%',
+                display: isMobile ? 'none' : 'block'
             }}
           >
             <div
@@ -362,23 +359,23 @@ function App() {
                 Point Variation
               </Typography>
               <Slider
-                sliderPosition={altitude}
                 size="small"
                 defaultValue={1}
                 step={.2}
                 marks
                 min={.2}
                 max={1}
-                onChange={changeAltitude}
+                onChangeCommitted={changeAltitude}
               />
 
             </div>
           </Card>
         </div>
         
+
         <Globe
           ref={globeRef}
-          globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+          globeImageUrl={globeImg}
           hexLabel={(d) => `${d.points[0]?.fullLocation} ${activeCategory === 'confirmed' 
             ? `| Confirmed Cases | ${numberWithCommas(d.points[0][activeCategory])}`
             : activeCategory === 'deaths' ? `| Deaths | ${numberWithCommas(d.points[0][activeCategory])}` 
@@ -408,10 +405,10 @@ function App() {
           bottom: isMobile ? 'auto' : sideMargins,
           right: isMobile ? 0 : sideMargins,
           left: isMobile ? 0 : 'auto',
-          top: isMobile ? sideMargins : 'auto',
+          top: isMobile ? 100 : 'auto',
           marginLeft: 'auto',
           marginRight: 'auto',
-          width: 'fit-content',
+          width: isMobile ? '90%' : 'fit-content',
           maxWidth: 400,
           display: 'flex',
           alignItems: 'center',
@@ -439,7 +436,7 @@ function App() {
         style={{
           ...customStyles.card,
           position: 'absolute',
-          bottom: isMobile ? 125 : sideMargins,
+          bottom: isMobile ? 200 : sideMargins,
           left: 0, 
           right: 0,
           marginLeft: 'auto',
@@ -476,23 +473,29 @@ function App() {
           right: isMobile ? 0 : 'auto',
           marginLeft: 'auto',
           marginRight: 'auto',
-          width: 'fit-content',
-          maxWidth: 300
+          width: isMobile ? windowDimensions.width - (sideMargins * 2) : 'fit-content',
+          textAlign: isMobile ? 'center' : 'left'
         }}
       >
-        <div style={{...customStyles.cardContainter}}>
-          <Typography gutterBottom>
+        <div 
+          style={{
+            ...customStyles.cardContainter,
+          }}
+        >
+          <Typography gutterBottom style={{display: isMobile ? 'none' : 'block'}}>
             COVID 19 GLOBE
           </Typography>
-          <Typography style={{fontSize: 10}} gutterBottom>
-            Data Sourced from <span><Link href="https://github.com/CSSEGISandData/COVID-19" target="_blank">JHU CSSE COVID-19 Data</Link></span>
-          </Typography>
-          <Typography style={{fontSize: 10}} gutterBottom>
-            View <span><Link href="https://github.com/mjguggen/covid-globe" target="_blank">GitHub Repository</Link></span>
-          </Typography>
-          <Typography style={{fontSize: 10}} gutterBottom>
-            Created by <span><Link href="https://mikeguggenbuehl.com/" target="_blank">Mike Guggenbuehl</Link></span>
-          </Typography>
+          <div>
+            <Typography style={{fontSize: 10}} gutterBottom>
+              Data Sourced from <span><Link href="https://github.com/CSSEGISandData/COVID-19" target="_blank">JHU CSSE COVID-19 Data</Link></span>
+            </Typography>
+            <Typography style={{fontSize: 10, display: isMobile ? 'none' : 'block'}} gutterBottom>
+              View <span><Link href="https://github.com/mjguggen/covid-globe" target="_blank">GitHub Repository</Link></span>
+            </Typography>
+            <Typography style={{fontSize: 10}} gutterBottom>
+              Created by <span><Link href="https://mikeguggenbuehl.com/" target="_blank">Mike Guggenbuehl</Link></span>
+            </Typography>
+          </div>
         </div>
       </Card>
 

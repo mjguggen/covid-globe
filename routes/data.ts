@@ -9,9 +9,9 @@ router.get('/today', async (req, res) => {
     const today = moment().subtract(1, 'days').format('MM-DD-YYYY')
 
     try {
-        const {data, date} = await Csv.findOne({date: today}) || {}
+        const {data} = await Csv.findOne({date: today}) || {}
         
-        return res.status(200).json({date, data})
+        return res.status(200).json({data})
     } catch (err) {
         console.error(err.message);
         return res.status(500).json({message: "Server Error"});
@@ -27,10 +27,10 @@ router.get('/range', async (req, res) => {
                 date: 1,
                 _id: 0
             }
-        ).then(res => res.map(({date}) => moment(date)))
+        ).then(res => res.map(({date}) => moment(date, "MM-DD-YYYY")))
 
-        const max = moment.max(dates).format('MM-DD-YYYY')
-        const min = moment.min(dates).format('MM-DD-YYYY')
+        const max = moment.max(dates)
+        const min = moment.min(dates)
         
         return res.status(200).json({max, min})
     } catch (err) {
@@ -42,9 +42,9 @@ router.get('/range', async (req, res) => {
 // @route GET api/data/:req_date
 router.get('/:req_date', async ({ params: { req_date } }, res) => {
     try {
-        const {date, data} = await Csv.findOne({date: req_date}) || {}
+        const {data} = await Csv.findOne({date: req_date}) || {}
         
-        return res.status(200).json({date, data})
+        return res.status(200).send(data)
     } catch (err) {
         console.error(err.message);
         return res.status(500).json({message: "Server Error"});
