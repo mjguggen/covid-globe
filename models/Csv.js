@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 const Schema = mongoose.Schema;
 
 const CsvSchema = new Schema({
@@ -16,4 +16,4 @@ const CsvSchema = new Schema({
     }
 })
 
-module.exports = mongoose.model('newcsv', CsvSchema)
+export const Csv = mongoose.model('newcsv', CsvSchema)
