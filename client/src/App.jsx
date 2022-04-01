@@ -2,7 +2,6 @@ import React, {useEffect, useState, useRef, useMemo, useCallback} from 'react';
 import api from './util/api'
 import Globe from 'react-globe.gl';
 import moment from 'moment-timezone'
-import {csvParse} from 'd3-dsv'
 import {interpolateYlOrRd, scaleSequentialSqrt} from 'd3'
 import {
   Radio, 
@@ -122,16 +121,7 @@ function App() {
       startLoading('data')
 
       const data = await api.get(`/data/${moment(date).format('MM-DD-YYYY')}`)
-        .then(async res => csvParse(res.data, ({lat, lng, confirmed, deaths, fullLocation, country, caseFatality, incidentRate}) => ({
-        lat: +lat,
-        lng: +lng,
-        confirmed: +confirmed,
-        deaths: +deaths,
-        fullLocation,
-        country,
-        caseFatality: +caseFatality,
-        incidentRate: +incidentRate
-      })))
+        .then(res => res.data)
 
       //@ts-ignore
       setData(data)
@@ -304,6 +294,7 @@ function App() {
         <div
           style={{
             position: 'absolute',
+            display: isMobile ? 'none' : 'block',
             top: isMobile ? 'auto' : sideMargins,
             right: isMobile ? 0 : sideMargins,
             left: isMobile ? 0 : 'auto',

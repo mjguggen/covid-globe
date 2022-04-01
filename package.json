@@ -5,12 +5,12 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.ts",
+    "dev": "nodemon index.js",
     "devClient": "cd client && npm run start",
     "devAll": "concurrently \"npm run dev\" \"npm run devClient\"",
     "build": "tsc",
     "buildProd": "npm install && cd client && npm install && npm run build",
-    "start": "ts-node index.ts"
+    "start": "node index.js"
   },
   "author": "Mike Guggenbuehl",
   "license": "ISC",
@@ -21,6 +21,7 @@
     "axios": "^0.24.0",
     "axios-request-throttle": "^1.0.0",
     "cors": "^2.8.5",
+    "d3-dsv": "^3.0.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.2",
     "moment": "^2.29.1",
@@ -32,5 +33,6 @@
     "@types/mongoose": "^5.11.97",
     "concurrently": "^6.5.1",
     "nodemon": "^2.0.15"
-  }
+  },
+  "type": "module"
 }

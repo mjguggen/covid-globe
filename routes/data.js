@@ -1,8 +1,8 @@
-export {}
-const express = require('express');
+import express from 'express'
 const router = express.Router();
-const Csv = require('../models/Csv')
-const moment = require('moment')
+import { Csv } from '../models/Csv.js';
+import moment from 'moment'
+import {csvParse} from 'd3-dsv'
 
 // @route GET api/data/today
 router.get('/today', async (req, res) => {
@@ -43,12 +43,25 @@ router.get('/range', async (req, res) => {
 router.get('/:req_date', async ({ params: { req_date } }, res) => {
     try {
         const {data} = await Csv.findOne({date: req_date}) || {}
+
+        const parsed = csvParse(data, ({lat, lng, confirmed, deaths, fullLocation, country, caseFatality, incidentRate}) => ({
+            lat: +lat,
+            lng: +lng,
+            confirmed: +confirmed,
+            deaths: +deaths,
+            fullLocation,
+            country,
+            caseFatality: +caseFatality,
+            incidentRate: +incidentRate
+        }))
+    
         
-        return res.status(200).send(data)
+        return res.status(200).json(parsed)
     } catch (err) {
         console.error(err.message);
         return res.status(500).json({message: "Server Error"});
     }
 })
 
-module.exports = router
+
+export {router}
