@@ -1,0 +1,21 @@
+name: Scrape data
+
+on:
+  schedule:
+    - cron: 0 12,23 * * *
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - name: Download dependencies
+        run: npm i @octokit/plugin-throttling @octokit/rest d3-dsv moment mongoose
+      - name: Scrape
+        uses: ./github/actions/scrape
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
