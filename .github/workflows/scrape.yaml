@@ -3,7 +3,7 @@ name: Scrape data
 on:
   workflow_dispatch:
   schedule:
-    - cron: 0 12,23 * * *
+    - cron: 0 12 * * *
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -11,11 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - name: Download dependencies
-        run: npm i @octokit/plugin-throttling @octokit/rest d3-dsv moment mongoose
-      - name: Scrape
-        uses: ./github/actions/scrape
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MONGO_URI: ${{ secrets.MONGO_URI }}
+      - uses: mjguggen/covid-globe-scraper-action@v1
+        with:
+          mongo_uri: ${{ secrets.MONGO_URI }}
+          github_token: ${{ secrets.GH_TOKEN }}
