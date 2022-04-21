@@ -14,4 +14,4 @@ jobs:
       - uses: mjguggen/covid-globe-scraper-action@v1
         with:
           mongo_uri: ${{ secrets.MONGO_URI }}
-          github_token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
