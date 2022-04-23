@@ -10,7 +10,7 @@ jobs:
 
 
     steps:
-      - uses: mjguggen/covid-globe-scraper-action@v1.0.2
+      - uses: mjguggen/covid-globe-scraper-action@v1.0.3
         with:
           mongo_uri: ${{ secrets.MONGO_URI }}
           token: ${{ secrets.GH_TOKEN }}
