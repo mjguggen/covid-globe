@@ -10,7 +10,6 @@ jobs:
 
 
     steps:
-      - uses: actions/checkout@v3
       - uses: mjguggen/covid-globe-scraper-action@v1
         with:
           mongo_uri: ${{ secrets.MONGO_URI }}
